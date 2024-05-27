@@ -72,6 +72,9 @@ public class SuperitemsReborn extends JavaPlugin implements Listener {
                             }
                         }
 
+                        getComponentLogger().warn("latest: {}",latestVersionObj.get("version").getAsString());
+                        getComponentLogger().warn("current: {}",currentPluginVersion);
+
                         if (latestVersionObj!= null && isNewerVersion(latestVersionObj.get("version").getAsString(), currentPluginVersion)) {
                             getComponentLogger().warn("A new version of the plugin is available: {}", latestVersionObj.get("version").getAsString());
                             getComponentLogger().warn("Please update to the latest version.");
