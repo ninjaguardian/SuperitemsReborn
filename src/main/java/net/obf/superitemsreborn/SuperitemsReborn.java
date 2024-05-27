@@ -2,7 +2,6 @@ package net.obf.superitemsreborn;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -42,6 +41,7 @@ public class SuperitemsReborn extends JavaPlugin implements Listener {
             public void run() {
                 HttpURLConnection connection = null;
                 try {
+                    // Use VERSION_URL to fetch updates.json
                     connection = (HttpURLConnection) VERSION_URL.openConnection();
                     connection.setRequestMethod("GET");
 
@@ -58,18 +58,25 @@ public class SuperitemsReborn extends JavaPlugin implements Listener {
                         String responseBody = response.toString();
                         getComponentLogger().info("Response Body: {}", responseBody);
 
-                        try {
-                            JsonObject json = JsonParser.parseString(responseBody).getAsJsonObject();
-                            String latestVersion = json.get("version").getAsString();
+                        // Parse the JSON response
+                        JsonObject json = JsonParser.parseString(responseBody).getAsJsonObject();
+                        String currentMinecraftVersion = getDescription().getVersion().split("-")[1]; // Extract Minecraft version
+                        String currentPluginVersion = getDescription().getVersion().split("-")[0]; // Extract Plugin version
 
-                            if (isNewerVersion(latestVersion, getDescription().getVersion())) {
-                                getComponentLogger().warn("A new version of the plugin is available: {}", latestVersion);
-                                getComponentLogger().warn("Please update to the latest version.");
-                            } else {
-                                getComponentLogger().info("You are running the latest version of the plugin.");
+                        // Find the latest version for the current Minecraft version
+                        JsonObject latestVersionObj = null;
+                        for (String element : json.keySet()) {
+                            if (element.equals(currentMinecraftVersion)) {
+                                latestVersionObj = json.get(element).getAsJsonObject();
+                                break;
                             }
-                        } catch (JsonSyntaxException e) {
-                            getComponentLogger().error("Failed to parse JSON response: {}", e.getMessage());
+                        }
+
+                        if (latestVersionObj!= null && isNewerVersion(latestVersionObj.get("version").getAsString(), currentPluginVersion)) {
+                            getComponentLogger().warn("A new version of the plugin is available: {}", latestVersionObj.get("version").getAsString());
+                            getComponentLogger().warn("Please update to the latest version.");
+                        } else {
+                            getComponentLogger().info("You are running the latest version of the plugin.");
                         }
                     } else {
                         getComponentLogger().error("Failed to check for updates. HTTP Response Code: {}", statusCode);
@@ -89,6 +96,8 @@ public class SuperitemsReborn extends JavaPlugin implements Listener {
         }.runTaskAsynchronously(this);
     }
 
+
+
     private boolean isNewerVersion(String latest, String current) {
         String[] latestComponents = latest.split("\\.");
         String[] currentComponents = current.split("\\.");
@@ -101,6 +110,8 @@ public class SuperitemsReborn extends JavaPlugin implements Listener {
             int latestComponent = Integer.parseInt(latestComponents[i]);
             int currentComponent = Integer.parseInt(currentComponents[i]);
 
+            getComponentLogger().warn("latestComponent: {}",latestComponent);
+            getComponentLogger().warn("currentComponent: {}",currentComponent);
             if (currentComponent > latestComponent) {
                 return false;
             } else if (currentComponent < latestComponent) {
