@@ -23,7 +23,7 @@ public class SuperitemsReborn extends JavaPlugin implements Listener {
 
     static {
         try {
-            VERSION_URL = new URL("https://pastebin.com/raw/Jmvjj7Xc");
+            VERSION_URL = new URL("https://raw.githubusercontent.com/ninjaguardian/SuperitemsReborn/master/updates.json");
         } catch (MalformedURLException e) {
             throw new RuntimeException("Invalid URL format", e);
         }
