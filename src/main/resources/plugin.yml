@@ -1,4 +1,7 @@
-name: Superitems Reborn
+name: SuperitemsReborn
 version: '${version}'
 main: net.obf.superitemsreborn.SuperitemsReborn
+description: The plugin for Superitems Reborn
+author: ninjaguardian
+website: https://github.com/ninjaguardian/SuperitemsReborn
 api-version: '1.20'
