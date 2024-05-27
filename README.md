@@ -1,4 +1,4 @@
-# This mod is currently not public :(
+# This plugin is currently not public :(
 ### Authors
 
 - [@ninjaguardian](https://www.github.com/ninjaguardian)
