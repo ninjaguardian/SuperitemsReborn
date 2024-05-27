@@ -1,0 +1,4 @@
+name: Superitems Reborn
+version: '${version}'
+main: net.obf.superitemsreborn.SuperitemsReborn
+api-version: '1.20'
