@@ -18,7 +18,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class SuperitemsReborn extends JavaPlugin implements Listener {
 
@@ -59,7 +58,7 @@ public class SuperitemsReborn extends JavaPlugin implements Listener {
                         reader.close();
 
                         String responseBody = response.toString();
-                        getComponentLogger().info("Response Body: {}", responseBody);
+//                        getComponentLogger().info("Response Body: {}", responseBody);
 
                         // Parse the JSON response
                         JsonObject json = JsonParser.parseString(responseBody).getAsJsonObject();
@@ -75,8 +74,8 @@ public class SuperitemsReborn extends JavaPlugin implements Listener {
                             }
                         }
 
-                        getComponentLogger().warn("Current: {}",currentPluginVersion);
-                        getComponentLogger().warn("Latest: {}",latestVersionObj.get("version").getAsString());
+                        getComponentLogger().info("Current: {}",currentPluginVersion);
+                        getComponentLogger().info("Latest: {}",latestVersionObj.get("version").getAsString());
 
                         if (isNewerVersion(latestVersionObj.get("version").getAsString(), currentPluginVersion)) {
                             getComponentLogger().warn("A new version of the plugin is available: {}", latestVersionObj.get("version").getAsString());
@@ -142,7 +141,7 @@ public class SuperitemsReborn extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        getComponentLogger().info(Component.text("Disabling SuperitemsReborn"));
+        //getComponentLogger().info(Component.text("Disabling SuperitemsReborn"));    apparently this is redundant
     }
 
     @EventHandler
