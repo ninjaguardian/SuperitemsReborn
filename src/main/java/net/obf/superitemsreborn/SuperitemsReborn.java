@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class SuperitemsReborn extends JavaPlugin implements Listener {
-
     private static final URL VERSION_URL;
 
     static {
@@ -148,4 +147,5 @@ public class SuperitemsReborn extends JavaPlugin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         event.getPlayer().sendMessage(Component.text("Hello, " + event.getPlayer().getName() + "!"));
     }
+
 }
