@@ -16,6 +16,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class SuperitemsReborn extends JavaPlugin implements Listener {
 
@@ -72,10 +75,10 @@ public class SuperitemsReborn extends JavaPlugin implements Listener {
                             }
                         }
 
-                        getComponentLogger().warn("latest: {}",latestVersionObj.get("version").getAsString());
-                        getComponentLogger().warn("current: {}",currentPluginVersion);
+                        getComponentLogger().warn("Current: {}",currentPluginVersion);
+                        getComponentLogger().warn("Latest: {}",latestVersionObj.get("version").getAsString());
 
-                        if (latestVersionObj!= null && isNewerVersion(latestVersionObj.get("version").getAsString(), currentPluginVersion)) {
+                        if (isNewerVersion(latestVersionObj.get("version").getAsString(), currentPluginVersion)) {
                             getComponentLogger().warn("A new version of the plugin is available: {}", latestVersionObj.get("version").getAsString());
                             getComponentLogger().warn("Please update to the latest version.");
                         } else {
@@ -109,20 +112,32 @@ public class SuperitemsReborn extends JavaPlugin implements Listener {
             throw new IllegalArgumentException("Versions must have the same number of components");
         }
 
-        for (int i = 0; i < latestComponents.length; i++) {
-            int latestComponent = Integer.parseInt(latestComponents[i]);
-            int currentComponent = Integer.parseInt(currentComponents[i]);
+        int result = compareSemanticVersions(latest, current);
+        return result > 0;
+    }
 
-            getComponentLogger().warn("latestComponent: {}",latestComponent);
-            getComponentLogger().warn("currentComponent: {}",currentComponent);
-            if (currentComponent > latestComponent) {
-                return false;
-            } else if (currentComponent < latestComponent) {
-                return true;
+    public static int compareSemanticVersions(String version1, String version2) {
+        List<Integer> version1Components = Arrays.stream(version1.split("\\."))
+                .map(Integer::parseInt)
+                .toList();
+        List<Integer> version2Components = Arrays.stream(version2.split("\\."))
+                .map(Integer::parseInt)
+                .toList();
+
+        int maxLength = Math.max(version1Components.size(), version2Components.size());
+
+        for (int i = 0; i < maxLength; i++) {
+            int v1Component = i < version1Components.size() ? version1Components.get(i) : 0;
+            int v2Component = i < version2Components.size() ? version2Components.get(i) : 0;
+
+            if (v1Component > v2Component) {
+                return 1;
+            } else if (v1Component < v2Component) {
+                return -1;
             }
         }
 
-        return false;
+        return 0;
     }
 
     @Override
