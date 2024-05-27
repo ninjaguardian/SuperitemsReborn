@@ -4,11 +4,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -16,65 +11,113 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 public class SuperitemsReborn extends JavaPlugin implements Listener {
 
-    private static final String VERSION_URL = "https://example.com/myplugin/version.json";
+    private static final URL VERSION_URL;
+
+    static {
+        try {
+            VERSION_URL = new URL("https://pastebin.com/raw/Jmvjj7Xc");
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Invalid URL format", e);
+        }
+    }
 
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
+        checkForUpdates();
     }
 
     private void checkForUpdates() {
         new BukkitRunnable() {
             @Override
             public void run() {
-                try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-                    HttpGet request = new HttpGet(VERSION_URL);
-                    try (CloseableHttpResponse response = httpClient.execute(request)) {
-                        int statusCode = response.getCode();
-                        if (statusCode == 200) {
-                            String responseBody = EntityUtils.toString(response.getEntity());
-                            getLogger().info("Response Body: " + responseBody); // Log the response body for debugging
+                HttpURLConnection connection = null;
+                try {
+                    connection = (HttpURLConnection) VERSION_URL.openConnection();
+                    connection.setRequestMethod("GET");
 
-                            try {
-                                // Use Java's built-in JSON support to parse the JSON response
-                                JsonObject json = JsonParser.parseString(responseBody).getAsJsonObject();
-                                String latestVersion = json.get("version").getAsString();
+                    int statusCode = connection.getResponseCode();
+                    if (statusCode == HttpURLConnection.HTTP_OK) {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                        StringBuilder response = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine())!= null) {
+                            response.append(line);
+                        }
+                        reader.close();
 
-                                if (isNewerVersion(latestVersion, getDescription().getVersion())) {
-                                    getLogger().info("A new version of the plugin is available: " + latestVersion);
-                                    getLogger().info("Please update to the latest version.");
-                                } else {
-                                    getLogger().info("You are running the latest version of the plugin.");
-                                }
-                            } catch (JsonSyntaxException e) {
-                                getLogger().severe("Failed to parse JSON response: " + e.getMessage());
+                        String responseBody = response.toString();
+                        getComponentLogger().info("Response Body: {}", responseBody);
+
+                        try {
+                            JsonObject json = JsonParser.parseString(responseBody).getAsJsonObject();
+                            String latestVersion = json.get("version").getAsString();
+
+                            if (isNewerVersion(latestVersion, getDescription().getVersion())) {
+                                getComponentLogger().warn("A new version of the plugin is available: {}", latestVersion);
+                                getComponentLogger().warn("Please update to the latest version.");
+                            } else {
+                                getComponentLogger().info("You are running the latest version of the plugin.");
                             }
-                        } else {
-                            getLogger().warning("Failed to check for updates. HTTP Response Code: " + statusCode);
+                        } catch (JsonSyntaxException e) {
+                            getComponentLogger().error("Failed to parse JSON response: {}", e.getMessage());
+                        }
+                    } else {
+                        getComponentLogger().error("Failed to check for updates. HTTP Response Code: {}", statusCode);
+                    }
+                } catch (IOException e) {
+                    getComponentLogger().error("Error occurred while checking for updates: {}", e.getMessage());
+                } finally {
+                    if (connection!= null) {
+                        try {
+                            connection.disconnect();
+                        } catch (Exception e) {
+                            getComponentLogger().error("Failed to disconnect HttpURLConnection", e);
                         }
                     }
-                } catch (Exception e) {
-                    getLogger().severe("Error occurred while checking for updates: " + e.getMessage());
                 }
             }
         }.runTaskAsynchronously(this);
     }
 
-
     private boolean isNewerVersion(String latest, String current) {
-        return latest.compareTo(current) > 0;
+        String[] latestComponents = latest.split("\\.");
+        String[] currentComponents = current.split("\\.");
+
+        if (latestComponents.length!= currentComponents.length) {
+            throw new IllegalArgumentException("Versions must have the same number of components");
+        }
+
+        for (int i = 0; i < latestComponents.length; i++) {
+            int latestComponent = Integer.parseInt(latestComponents[i]);
+            int currentComponent = Integer.parseInt(currentComponents[i]);
+
+            if (currentComponent > latestComponent) {
+                return false;
+            } else if (currentComponent < latestComponent) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
     public void onDisable() {
-        getComponentLogger().debug(Component.text("Disabling Superitems Reborn"));
+        getComponentLogger().info(Component.text("Disabling SuperitemsReborn"));
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         event.getPlayer().sendMessage(Component.text("Hello, " + event.getPlayer().getName() + "!"));
     }
-
 }
